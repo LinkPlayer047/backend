@@ -22,7 +22,7 @@ export async function DELETE(req, { params }) {
     console.log("Params received in DELETE:", params);
 
     // 🔹 Get the blog ID safely
-    const blogId = params.id || params.blogId; // fallback in case Next.js passes different key
+    const blogId = params.id; // ye ab sahi _id receive karega
     if (!blogId) {
       return NextResponse.json(
         { error: "Blog ID not provided in params" },
