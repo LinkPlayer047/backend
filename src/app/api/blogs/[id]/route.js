@@ -9,29 +9,31 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// OPTIONS preflight for CORS
+// OPTIONS preflight
 export async function OPTIONS() {
   return NextResponse.json({}, { status: 200, headers: corsHeaders });
 }
 
-// DELETE blog by ID
+// DELETE blog
 export async function DELETE(req, { params }) {
   try {
-    // Connect to MongoDB
     await connectDB();
 
-    console.log("DELETE params:", params); // Debug: check in Vercel logs
-
-    const blogId = params?.id;
+    // 🔥 ID fix: params missing ho to URL se extract kar lo
+    let blogId = params?.id;
 
     if (!blogId) {
+      const url = new URL(req.url);
+      blogId = url.pathname.split("/").pop(); // last part is ID
+    }
+
+    if (!blogId || blogId === "undefined" || blogId === "null") {
       return NextResponse.json(
-        { error: "Blog ID not provided in params" },
+        { error: "Valid Blog ID not provided" },
         { status: 400, headers: corsHeaders }
       );
     }
 
-    // Delete blog from DB
     const deletedBlog = await Blog.findByIdAndDelete(blogId);
 
     if (!deletedBlog) {
@@ -46,9 +48,8 @@ export async function DELETE(req, { params }) {
       { status: 200, headers: corsHeaders }
     );
   } catch (err) {
-    console.error("DELETE ERROR:", err);
     return NextResponse.json(
-      { error: err.message || "Internal Server Error" },
+      { error: err.message },
       { status: 500, headers: corsHeaders }
     );
   }
