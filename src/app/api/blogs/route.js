@@ -56,25 +56,6 @@ export async function POST(req) {
   }
 }
 
-// // DELETE a blog by ID
-// export async function DELETE(req, { params }) {
-//   await connectDB();
-
-//   const corsHeaders = getCorsHeaders(req);
-
-//   try {
-//     const { id } = params;
-//     const deletedBlog = await Blog.findByIdAndDelete(id);
-
-//     if (!deletedBlog) {
-//       return NextResponse.json({ message: "Blog not found" }, { status: 404, headers: corsHeaders });
-//     }
-
-//     return NextResponse.json({ message: "Blog deleted" }, { status: 200, headers: corsHeaders });
-//   } catch (err) {
-//     return NextResponse.json({ error: err.message }, { status: 500, headers: corsHeaders });
-//   }
-// }
 
 // OPTIONS preflight
 export async function OPTIONS(req) {
