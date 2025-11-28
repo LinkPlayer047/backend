@@ -1,27 +1,37 @@
 import mongoose from "mongoose";
 
-let isConnected = global.mongoose ? global.mongoose.isConnected : false;
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
 async function connectDB() {
-  if (isConnected) {
+  if (cached.conn) {
     console.log("✅ Using existing MongoDB connection");
-    return;
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      dbName: "linkplayer047_db_user",
+      bufferCommands: false,
+    };
+
+    cached.promise = mongoose.connect(process.env.MONGO_URI, opts).then((mongoose) => {
+      return mongoose;
+    });
   }
 
   try {
-    const db = await mongoose.connect(process.env.MONGO_URI, {
-      dbName: "linkplayer047_db_user", // actual DB name
-    });
-
-    isConnected = db.connections[0].readyState;
-    if (!global.mongoose) global.mongoose = {};
-    global.mongoose.isConnected = isConnected;
-
+    cached.conn = await cached.promise;
     console.log("✅ MongoDB Connected (Next.js)");
-  } catch (error) {
-    console.error("❌ MongoDB connection error:", error.message);
-    throw new Error(error);
+    return cached.conn;
+  } catch (err) {
+    cached.promise = null;
+    console.error("❌ MongoDB connection error:", err.message);
+    throw err;
   }
 }
 
-export default connectDB; // default export
+export default connectDB;
