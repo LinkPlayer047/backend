@@ -2,23 +2,27 @@ import { NextResponse } from "next/server";
 import Blog from "@/models/Blogs";
 import connectDB from "@/lib/db";
 
+// CORS headers
 const corsHeaders = {
   "Access-Control-Allow-Origin": process.env.ADMIN_PANEL_URL || "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// CORS Preflight
+// OPTIONS preflight for CORS
 export async function OPTIONS() {
   return NextResponse.json({}, { status: 200, headers: corsHeaders });
 }
 
-// DELETE blog route
+// DELETE blog by ID
 export async function DELETE(req, { params }) {
   try {
+    // Connect to MongoDB
     await connectDB();
 
-    const blogId = params?.id; // optional chaining
+    console.log("DELETE params:", params); // Debug: check in Vercel logs
+
+    const blogId = params?.id;
 
     if (!blogId) {
       return NextResponse.json(
@@ -27,6 +31,7 @@ export async function DELETE(req, { params }) {
       );
     }
 
+    // Delete blog from DB
     const deletedBlog = await Blog.findByIdAndDelete(blogId);
 
     if (!deletedBlog) {
@@ -41,10 +46,10 @@ export async function DELETE(req, { params }) {
       { status: 200, headers: corsHeaders }
     );
   } catch (err) {
+    console.error("DELETE ERROR:", err);
     return NextResponse.json(
-      { error: err.message },
+      { error: err.message || "Internal Server Error" },
       { status: 500, headers: corsHeaders }
     );
   }
 }
-
