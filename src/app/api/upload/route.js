@@ -22,11 +22,11 @@ export async function OPTIONS() {
 export async function POST(req) {
   try {
     const form = await req.formData();
-    const file = form.get("file"); // <-- FIXED (Frontend sends 'image')
+    const file = form.get("image"); // <-- frontend must send formData.append("image", file)
 
     if (!file) {
       return NextResponse.json(
-        { error: "No image received. Use formData.append('image', file)" },
+        { error: "No image received" },
         { status: 400, headers: corsHeaders }
       );
     }
@@ -34,7 +34,6 @@ export async function POST(req) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Upload to Cloudinary using stream
     const uploadedImage = await new Promise((resolve, reject) => {
       const upload = cloudinary.uploader.upload_stream(
         { folder: "blogs" },

@@ -18,7 +18,7 @@ export async function DELETE(req, { params }) {
   try {
     await connectDB();
 
-    const blogId = params.slug;
+    const blogId = params.id; // <-- fix here
 
     const deletedBlog = await Blog.findByIdAndDelete(blogId);
 
