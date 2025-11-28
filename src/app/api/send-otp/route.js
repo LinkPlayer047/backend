@@ -5,54 +5,45 @@ const otpStore = global.otpStore || {};
 global.otpStore = otpStore;
 
 export async function POST(req) {
-  const { email } = await req.json();
+  const allowedOrigins = [
+    process.env.ADMIN_PANEL_URL,
+    process.env.FRONTEND_URL,
+    "http://localhost:3000",
+  ];
+  const origin = req.headers.get("origin") || "";
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : "",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
 
-  if (!email) {
-    return NextResponse.json({ message: "Email required" }, { status: 400 });
-  }
+  const { email } = await req.json();
+  if (!email) return NextResponse.json({ message: "Email required" }, { status: 400, headers: corsHeaders });
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore[email] = code;
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
-    auth: {
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_PASS,
-    },
+    auth: { user: process.env.EMAIL, pass: process.env.EMAIL_PASS },
   });
 
-  await transporter.sendMail({
-    from: process.env.EMAIL,
-    to: email,
-    subject: "Your OTP Code",
-    text: `Your OTP Code is ${code}`,
-  });
+  await transporter.sendMail({ from: process.env.EMAIL, to: email, subject: "Your OTP Code", text: `Your OTP Code is ${code}` });
 
-  return NextResponse.json(
-    { message: "OTP sent" },
-    {
-      status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": `${process.env.ADMIN_PANEL_URL}`,
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
-    }
-  );
+  return NextResponse.json({ message: "OTP sent" }, { status: 200, headers: corsHeaders });
 }
 
-// Preflight OPTIONS request
-export async function OPTIONS() {
-  return NextResponse.json(
-    {},
-    {
-      status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": `${process.env.ADMIN_PANEL_URL}`,
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
-    }
-  );
+export async function OPTIONS(req) {
+  const allowedOrigins = [
+    process.env.ADMIN_PANEL_URL,
+    process.env.FRONTEND_URL,
+    "http://localhost:3000",
+  ];
+  const origin = req.headers.get("origin") || "";
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : "",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+  return NextResponse.json({}, { status: 200, headers: corsHeaders });
 }
