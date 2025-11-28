@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
-const otpStore = {};
+const otpStore = global.otpStore || {};
+global.otpStore = otpStore;
 
 export async function POST(req) {
   const { email } = await req.json();
@@ -28,5 +29,30 @@ export async function POST(req) {
     text: `Your OTP Code is ${code}`,
   });
 
-  return NextResponse.json({ message: "OTP sent" });
+  return NextResponse.json(
+    { message: "OTP sent" },
+    {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": `${process.env.FRONTEND_URL},${process.env.ADMIN_PANEL_URL}`,
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    }
+  );
+}
+
+// Preflight OPTIONS request
+export async function OPTIONS() {
+  return NextResponse.json(
+    {},
+    {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": process.env.FRONTEND_URL || "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    }
+  );
 }

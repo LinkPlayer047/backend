@@ -3,6 +3,18 @@ import connectDB from "@/lib/db";
 import Admin from "../../../models/Admin";
 import bcrypt from "bcryptjs";
 
+// Helper: CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": `${process.env.FRONTEND_URL},${process.env.ADMIN_PANEL_URL}`,
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+// OPTIONS handler for preflight requests
+export async function OPTIONS() {
+  return NextResponse.json({}, { status: 200, headers: corsHeaders });
+}
+
 export async function POST(req) {
   await connectDB();
 
@@ -13,7 +25,7 @@ export async function POST(req) {
     if (!username || !email || !password) {
       return NextResponse.json(
         { message: "All fields (username, email, password) are required" },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -22,7 +34,7 @@ export async function POST(req) {
     if (exists) {
       return NextResponse.json(
         { message: "Email already registered" },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -38,10 +50,13 @@ export async function POST(req) {
 
     return NextResponse.json(
       { message: "Signup successful", email: newAdmin.email },
-      { status: 201 }
+      { status: 201, headers: corsHeaders }
     );
   } catch (err) {
     console.error("Signup error:", err);
-    return NextResponse.json({ message: "Signup error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Signup error" },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
