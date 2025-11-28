@@ -9,11 +9,10 @@ cloudinary.config({
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": process.env.ADMIN_PANEL_URL || "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// Preflight
 export async function OPTIONS() {
   return NextResponse.json({}, { status: 200, headers: corsHeaders });
 }
@@ -33,7 +32,6 @@ export async function POST(req) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // FIXED STREAM UPLOAD
     const uploadedImage = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: "blogs" },
