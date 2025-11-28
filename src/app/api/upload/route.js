@@ -9,22 +9,24 @@ cloudinary.config({
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": process.env.ADMIN_PANEL_URL || "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
 };
 
+// Preflight
 export async function OPTIONS() {
   return NextResponse.json({}, { status: 200, headers: corsHeaders });
 }
 
+// Upload route
 export async function POST(req) {
   try {
-    const data = await req.formData();
-    const file = data.get("file");
+    const form = await req.formData();
+    const file = form.get("image"); // <-- FIXED (Frontend sends 'image')
 
     if (!file) {
       return NextResponse.json(
-        { error: "No file uploaded" },
+        { error: "No image received. Use formData.append('image', file)" },
         { status: 400, headers: corsHeaders }
       );
     }
@@ -32,23 +34,22 @@ export async function POST(req) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    // Upload to Cloudinary using stream
     const uploadedImage = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
+      const upload = cloudinary.uploader.upload_stream(
         { folder: "blogs" },
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
         }
       );
-
-      uploadStream.end(buffer);
+      upload.end(buffer);
     });
 
     return NextResponse.json(
       { url: uploadedImage.secure_url },
       { status: 200, headers: corsHeaders }
     );
-
   } catch (err) {
     return NextResponse.json(
       { error: err.message },

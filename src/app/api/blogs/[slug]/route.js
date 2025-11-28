@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import Blog from "@/models/Blog";  // <-- your model
-import connectDB from "@/lib/connectDB"; // <-- your DB connect
+import Blog from "@/models/Blogs";
+import connectDB from "@/lib/db";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": process.env.ADMIN_PANEL_URL || "*",
@@ -8,20 +8,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// Preflight (VERY IMPORTANT)
+// CORS Preflight
 export async function OPTIONS() {
   return NextResponse.json({}, { status: 200, headers: corsHeaders });
 }
 
+// DELETE blog route
 export async function DELETE(req, { params }) {
   try {
     await connectDB();
 
-    const slug = params.slug;
+    const blogId = params.slug;
 
-    const deleted = await Blog.findByIdAndDelete(slug);
+    const deletedBlog = await Blog.findByIdAndDelete(blogId);
 
-    if (!deleted) {
+    if (!deletedBlog) {
       return NextResponse.json(
         { error: "Blog not found" },
         { status: 404, headers: corsHeaders }
@@ -29,10 +30,9 @@ export async function DELETE(req, { params }) {
     }
 
     return NextResponse.json(
-      { success: true, message: "Blog deleted successfully" },
+      { message: "Blog deleted successfully" },
       { status: 200, headers: corsHeaders }
     );
-
   } catch (err) {
     return NextResponse.json(
       { error: err.message },
