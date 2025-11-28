@@ -22,7 +22,7 @@ export async function OPTIONS() {
 export async function POST(req) {
   try {
     const form = await req.formData();
-    const file = form.get("image"); // <-- FIXED (Frontend sends 'image')
+    const file = form.get("file"); // <-- FIXED (Frontend sends 'image')
 
     if (!file) {
       return NextResponse.json(
