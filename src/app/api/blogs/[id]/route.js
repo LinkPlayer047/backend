@@ -79,6 +79,7 @@ export async function PUT(req, { params }) {
   const allowedOrigins = [
     "http://localhost:3000",
     "https://admin-panel-six-vert.vercel.app",
+    "https://websolutions-ten.vercel.app/",
   ];
   const origin = req.headers.get("origin");
   const corsHeaders = {
