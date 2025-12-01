@@ -2,31 +2,44 @@ import { NextResponse } from "next/server";
 import Blog from "@/models/Blogs";
 import connectDB from "@/lib/db";
 
-// CORS headers
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://admin-panel-six-vert.vercel.app",
-];
-
-const origin = req.headers.get("origin");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : allowedOrigins[1],
-  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
-
 // OPTIONS preflight
-export async function OPTIONS() {
+export async function OPTIONS(req) {
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "https://admin-panel-six-vert.vercel.app",
+  ];
+
+  const origin = req.headers.get("origin");
+
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
+      ? origin
+      : allowedOrigins[1],
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+
   return NextResponse.json({}, { status: 200, headers: corsHeaders });
 }
 
 // DELETE blog
 export async function DELETE(req, { params }) {
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "https://admin-panel-six-vert.vercel.app",
+  ];
+  const origin = req.headers.get("origin");
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
+      ? origin
+      : allowedOrigins[1],
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+
   try {
     await connectDB();
 
-    // ID extraction: params or URL
     let blogId = params?.id;
     if (!blogId) {
       const url = new URL(req.url);
@@ -63,6 +76,19 @@ export async function DELETE(req, { params }) {
 
 // PUT blog (update)
 export async function PUT(req, { params }) {
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "https://admin-panel-six-vert.vercel.app",
+  ];
+  const origin = req.headers.get("origin");
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
+      ? origin
+      : allowedOrigins[1],
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+
   try {
     await connectDB();
 
