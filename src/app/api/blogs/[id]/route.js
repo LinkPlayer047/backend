@@ -25,7 +25,7 @@ export async function OPTIONS(req) {
   return NextResponse.json({}, { status: 200, headers: corsHeaders });
 }
 
-// GET single blog (missing in original code)
+// GET single blog
 export async function GET(req, { params }) {
   const corsHeaders = getCorsHeaders(req);
 
@@ -64,13 +64,8 @@ export async function DELETE(req, { params }) {
   try {
     await connectDB();
 
-    let blogId = params?.id;
+    const blogId = params?.id;
     if (!blogId) {
-      const url = new URL(req.url);
-      blogId = url.pathname.split("/").pop();
-    }
-
-    if (!blogId || blogId === "undefined" || blogId === "null") {
       return NextResponse.json(
         { error: "Valid Blog ID not provided" },
         { status: 400, headers: corsHeaders }
@@ -104,13 +99,8 @@ export async function PUT(req, { params }) {
   try {
     await connectDB();
 
-    let blogId = params?.id;
+    const blogId = params?.id;
     if (!blogId) {
-      const url = new URL(req.url);
-      blogId = url.pathname.split("/").pop();
-    }
-
-    if (!blogId || blogId === "undefined" || blogId === "null") {
       return NextResponse.json(
         { error: "Valid Blog ID not provided" },
         { status: 400, headers: corsHeaders }
@@ -118,7 +108,6 @@ export async function PUT(req, { params }) {
     }
 
     const body = await req.json();
-
     if (!body.title || !body.content) {
       return NextResponse.json(
         { error: "Title and content are required" },
