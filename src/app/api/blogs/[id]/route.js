@@ -9,30 +9,48 @@ const allowedOrigins = [
   "https://websolutions-ten.vercel.app",
 ];
 
-// Helper function to generate CORS headers
+// CORS Headers Generator
 const getCorsHeaders = (req) => {
   const origin = req.headers.get("origin");
   return {
-    "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
+      ? origin
+      : allowedOrigins[0],
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
 };
 
-// OPTIONS preflight
+// OPTIONS (preflight)
 export async function OPTIONS(req) {
   const corsHeaders = getCorsHeaders(req);
   return NextResponse.json({}, { status: 200, headers: corsHeaders });
 }
 
-// GET single blog
+// Helper: Extract Blog ID (fixes Vercel/Next.js params bug)
+const extractBlogId = (req, params) => {
+  let blogId = params?.id;
+
+  if (!blogId) {
+    const url = new URL(req.url);
+    const parts = url.pathname.split("/");
+    blogId = parts[parts.length - 1];
+  }
+
+  return blogId;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                   GET BLOG                                  */
+/* -------------------------------------------------------------------------- */
 export async function GET(req, { params }) {
   const corsHeaders = getCorsHeaders(req);
 
   try {
     await connectDB();
 
-    const blogId = params?.id;
+    const blogId = extractBlogId(req, params);
+
     if (!blogId) {
       return NextResponse.json(
         { error: "Blog ID not provided" },
@@ -41,6 +59,7 @@ export async function GET(req, { params }) {
     }
 
     const blog = await Blog.findById(blogId);
+
     if (!blog) {
       return NextResponse.json(
         { error: "Blog not found" },
@@ -57,15 +76,18 @@ export async function GET(req, { params }) {
   }
 }
 
-// DELETE blog
+/* -------------------------------------------------------------------------- */
+/*                                 DELETE BLOG                                 */
+/* -------------------------------------------------------------------------- */
 export async function DELETE(req, { params }) {
   const corsHeaders = getCorsHeaders(req);
 
   try {
     await connectDB();
 
-    const blogId = params?.id;
-    if (!blogId) {
+    const blogId = extractBlogId(req, params);
+
+    if (!blogId || blogId === "undefined" || blogId === "null") {
       return NextResponse.json(
         { error: "Valid Blog ID not provided" },
         { status: 400, headers: corsHeaders }
@@ -73,6 +95,7 @@ export async function DELETE(req, { params }) {
     }
 
     const deletedBlog = await Blog.findByIdAndDelete(blogId);
+
     if (!deletedBlog) {
       return NextResponse.json(
         { error: "Blog not found" },
@@ -92,30 +115,34 @@ export async function DELETE(req, { params }) {
   }
 }
 
-// PUT blog (update)
+/* -------------------------------------------------------------------------- */
+/*                                  UPDATE BLOG                                */
+/* -------------------------------------------------------------------------- */
 export async function PUT(req, { params }) {
   const corsHeaders = getCorsHeaders(req);
 
   try {
     await connectDB();
 
-    const blogId = params?.id;
-    if (!blogId) {
+    const blogId = extractBlogId(req, params);
+
+    if (!blogId || blogId === "undefined" || blogId === "null") {
       return NextResponse.json(
         { error: "Valid Blog ID not provided" },
         { status: 400, headers: corsHeaders }
       );
     }
 
-    const body = await req.json();
-    if (!body.title || !body.content) {
+    const data = await req.json();
+
+    if (!data.title || !data.content) {
       return NextResponse.json(
-        { error: "Title and content are required" },
+        { error: "Title & Content are required" },
         { status: 400, headers: corsHeaders }
       );
     }
 
-    const updatedBlog = await Blog.findByIdAndUpdate(blogId, body, {
+    const updatedBlog = await Blog.findByIdAndUpdate(blogId, data, {
       new: true,
       runValidators: true,
     });
@@ -127,7 +154,10 @@ export async function PUT(req, { params }) {
       );
     }
 
-    return NextResponse.json(updatedBlog, { status: 200, headers: corsHeaders });
+    return NextResponse.json(updatedBlog, {
+      status: 200,
+      headers: corsHeaders,
+    });
   } catch (err) {
     return NextResponse.json(
       { error: err.message },
