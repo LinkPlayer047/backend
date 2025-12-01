@@ -2,40 +2,64 @@ import { NextResponse } from "next/server";
 import Blog from "@/models/Blogs";
 import connectDB from "@/lib/db";
 
-// OPTIONS preflight
-export async function OPTIONS(req) {
-  const allowedOrigins = [
-    "http://localhost:3000",
-    "https://admin-panel-six-vert.vercel.app",
-  ];
+// Allowed origins
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://admin-panel-six-vert.vercel.app",
+  "https://websolutions-ten.vercel.app",
+];
 
+// Helper function to generate CORS headers
+const getCorsHeaders = (req) => {
   const origin = req.headers.get("origin");
-
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
-      ? origin
-      : allowedOrigins[1],
+  return {
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
+};
 
+// OPTIONS preflight
+export async function OPTIONS(req) {
+  const corsHeaders = getCorsHeaders(req);
   return NextResponse.json({}, { status: 200, headers: corsHeaders });
+}
+
+// GET single blog (missing in original code)
+export async function GET(req, { params }) {
+  const corsHeaders = getCorsHeaders(req);
+
+  try {
+    await connectDB();
+
+    const blogId = params?.id;
+    if (!blogId) {
+      return NextResponse.json(
+        { error: "Blog ID not provided" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const blog = await Blog.findById(blogId);
+    if (!blog) {
+      return NextResponse.json(
+        { error: "Blog not found" },
+        { status: 404, headers: corsHeaders }
+      );
+    }
+
+    return NextResponse.json(blog, { status: 200, headers: corsHeaders });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500, headers: corsHeaders }
+    );
+  }
 }
 
 // DELETE blog
 export async function DELETE(req, { params }) {
-  const allowedOrigins = [
-    "http://localhost:3000",
-    "https://admin-panel-six-vert.vercel.app",
-  ];
-  const origin = req.headers.get("origin");
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
-      ? origin
-      : allowedOrigins[1],
-    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  };
+  const corsHeaders = getCorsHeaders(req);
 
   try {
     await connectDB();
@@ -54,7 +78,6 @@ export async function DELETE(req, { params }) {
     }
 
     const deletedBlog = await Blog.findByIdAndDelete(blogId);
-
     if (!deletedBlog) {
       return NextResponse.json(
         { error: "Blog not found" },
@@ -76,19 +99,7 @@ export async function DELETE(req, { params }) {
 
 // PUT blog (update)
 export async function PUT(req, { params }) {
-  const allowedOrigins = [
-    "http://localhost:3000",
-    "https://admin-panel-six-vert.vercel.app",
-    "https://websolutions-ten.vercel.app/",
-  ];
-  const origin = req.headers.get("origin");
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
-      ? origin
-      : allowedOrigins[1],
-    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  };
+  const corsHeaders = getCorsHeaders(req);
 
   try {
     await connectDB();
@@ -127,10 +138,7 @@ export async function PUT(req, { params }) {
       );
     }
 
-    return NextResponse.json(
-      updatedBlog,
-      { status: 200, headers: corsHeaders }
-    );
+    return NextResponse.json(updatedBlog, { status: 200, headers: corsHeaders });
   } catch (err) {
     return NextResponse.json(
       { error: err.message },
