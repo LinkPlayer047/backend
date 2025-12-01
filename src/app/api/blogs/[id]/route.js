@@ -3,8 +3,15 @@ import Blog from "@/models/Blogs";
 import connectDB from "@/lib/db";
 
 // CORS headers
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://admin-panel-six-vert.vercel.app",
+];
+
+const origin = req.headers.get("origin");
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": process.env.ADMIN_PANEL_URL || "*",
+  "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : allowedOrigins[1],
   "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
